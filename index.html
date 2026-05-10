@@ -28,7 +28,7 @@
 
 <script>
 async function loadNews() {
-  const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news");
+  const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news?t=" + Date.now());
   const data = await res.json();
 
   const list = document.getElementById("news");
