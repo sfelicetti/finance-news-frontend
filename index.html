@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Finance Dashboard</title>
+  <title>Global Finance Dashboard</title>
+
+  <!-- ✅ fondamentale per mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
@@ -11,14 +14,19 @@
       color: white;
     }
 
+    /* HEADER */
     header {
       background: #1f1f1f;
       padding: 15px;
       text-align: center;
       font-size: 22px;
       font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
+    /* CONTROLS */
     .controls {
       display: flex;
       flex-wrap: wrap;
@@ -40,6 +48,7 @@
       background: red;
     }
 
+    /* GRID PC */
     #news {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -48,6 +57,7 @@
       list-style: none;
     }
 
+    /* CARD */
     li {
       background: #1e1e1e;
       padding: 15px;
@@ -99,17 +109,45 @@
     small {
       color: gray;
     }
-  </style>
 
+    /* ✅ TABLET */
+    @media (max-width: 900px) {
+      #news {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+    }
+
+    /* ✅ SMARTPHONE */
+    @media (max-width: 600px) {
+      #news {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      li {
+        padding: 12px;
+      }
+
+      header {
+        font-size: 18px;
+      }
+
+      button {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header>📊 Finance News Dashboard</header>
+<header>📊 Global Finance Dashboard</header>
 
 <div class="controls">
   <button onclick="setFilter('all')" id="btnAll" class="active">All</button>
   <button onclick="setFilter('important')" id="btnImp">Important</button>
-  <button onclick="setFilter('defense')" id="btnDef">Defence</button>
+  <button onclick="setFilter('defense')" id="btnDef">Defense</button>
   <button onclick="setFilter('ai')" id="btnAI">AI</button>
   <button onclick="setFilter('semiconductor')" id="btnSemi">Semiconductors</button>
   <button onclick="setFilter('macro')" id="btnMacro">Macro</button>
@@ -127,6 +165,14 @@ const scoreColors = {
   3: "#ffaa00",
   2: "#3399ff",
   1: "#666"
+};
+
+const categoryLabels = {
+  defense: "Defense",
+  ai: "AI",
+  semiconductor: "Semiconductors",
+  macro: "Macro",
+  general: "General"
 };
 
 async function loadNews() {
@@ -152,7 +198,7 @@ function renderNews() {
   filtered.forEach(article => {
     const li = document.createElement("li");
 
-    // important badge
+    // IMPORTANT badge
     if (article.important) {
       li.classList.add("important");
 
@@ -162,31 +208,22 @@ function renderNews() {
       li.appendChild(badge);
     }
 
-    // category
+    // Category
     const category = document.createElement("div");
     category.className = "category";
-    
-const categoryLabels = {
-  defense: "Defense",
-  ai: "AI",
-  semiconductor: "Semiconductors",
-  macro: "Macro",
-  general: "General"
-};
+    category.textContent = categoryLabels[article.category] || "General";
 
-category.textContent = categoryLabels[article.category] || "General";
-
-    // link
+    // Title
     const link = document.createElement("a");
     link.href = article.link;
     link.target = "_blank";
     link.textContent = article.title;
 
-    // date
+    // Date
     const date = document.createElement("div");
     date.innerHTML = "<small>" + new Date(article.pubDate).toLocaleString() + "</small>";
 
-    // score
+    // Score
     const score = document.createElement("div");
     score.className = "score";
     score.style.background = scoreColors[article.score];
@@ -207,12 +244,7 @@ function setFilter(filter) {
 
   document.querySelectorAll("button").forEach(btn => btn.classList.remove("active"));
 
-  if (filter === "all") btnAll.classList.add("active");
-  if (filter === "important") btnImp.classList.add("active");
-  if (filter === "defense") btnDef.classList.add("active");
-  if (filter === "ai") btnAI.classList.add("active");
-  if (filter === "semiconductor") btnSemi.classList.add("active");
-  if (filter === "macro") btnMacro.classList.add("active");
+  document.getElementById("btn" + filter.charAt(0).toUpperCase() + filter.slice(1))?.classList.add("active");
 
   renderNews();
 }
