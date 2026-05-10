@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Finance News</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    a {
+      text-decoration: none;
+      color: #0077cc;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Ultime notizie finanziarie</h1>
+
+<ul id="news"></ul>
+
+<script>
+async function loadNews() {
+  const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news");
+  const data = await res.json();
+
+  const list = document.getElementById("news");
+
+  data.forEach(article => {
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      ${article.link}
+        ${article.title}
+      </a>
+      <br/>
+      <small>${new Date(article.pubDate).toLocaleString()}</small>
+    `;
+
+    list.appendChild(li);
+  });
+}
+
+loadNews();
+</script>
+
+</body>
+</html>
