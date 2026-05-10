@@ -22,6 +22,7 @@
     .controls {
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 10px;
       padding: 15px;
     }
@@ -68,10 +69,15 @@
       top: 10px;
       right: 10px;
       background: red;
-      color: white;
       font-size: 10px;
       padding: 3px 6px;
       border-radius: 3px;
+    }
+
+    .category {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 5px;
     }
 
     a {
@@ -88,13 +94,15 @@
 </head>
 <body>
 
-<header>
-  📊 Finance News Dashboard
-</header>
+<header>📊 Finance News Dashboard</header>
 
 <div class="controls">
   <button onclick="setFilter('all')" id="btnAll" class="active">Tutte</button>
   <button onclick="setFilter('important')" id="btnImp">Importanti</button>
+  <button onclick="setFilter('defense')" id="btnDef">Difesa</button>
+  <button onclick="setFilter('ai')" id="btnAI">AI</button>
+  <button onclick="setFilter('semiconductor')" id="btnSemi">Chip</button>
+  <button onclick="setFilter('macro')" id="btnMacro">Macro</button>
 </div>
 
 <ul id="news"></ul>
@@ -119,6 +127,8 @@ function renderNews() {
 
   if (currentFilter === "important") {
     filtered = allNews.filter(n => n.important);
+  } else if (currentFilter !== "all") {
+    filtered = allNews.filter(n => n.category === currentFilter);
   }
 
   filtered.forEach(article => {
@@ -133,6 +143,10 @@ function renderNews() {
       li.appendChild(badge);
     }
 
+    const category = document.createElement("div");
+    category.className = "category";
+    category.textContent = article.category.toUpperCase();
+
     const link = document.createElement("a");
     link.href = article.link;
     link.target = "_blank";
@@ -141,6 +155,7 @@ function renderNews() {
     const date = document.createElement("div");
     date.innerHTML = "<small>" + new Date(article.pubDate).toLocaleString() + "</small>";
 
+    li.appendChild(category);
     li.appendChild(link);
     li.appendChild(document.createElement("br"));
     li.appendChild(date);
@@ -152,19 +167,19 @@ function renderNews() {
 function setFilter(filter) {
   currentFilter = filter;
 
-  document.getElementById("btnAll").classList.remove("active");
-  document.getElementById("btnImp").classList.remove("active");
+  document.querySelectorAll("button").forEach(btn => btn.classList.remove("active"));
 
-  if (filter === "all") {
-    document.getElementById("btnAll").classList.add("active");
-  } else {
-    document.getElementById("btnImp").classList.add("active");
-  }
+  if (filter === "all") document.getElementById("btnAll").classList.add("active");
+  if (filter === "important") document.getElementById("btnImp").classList.add("active");
+  if (filter === "defense") document.getElementById("btnDef").classList.add("active");
+  if (filter === "ai") document.getElementById("btnAI").classList.add("active");
+  if (filter === "semiconductor") document.getElementById("btnSemi").classList.add("active");
+  if (filter === "macro") document.getElementById("btnMacro").classList.add("active");
 
   renderNews();
 }
 
-// ✅ auto refresh ogni 5 minuti
+// ✅ auto refresh
 setInterval(loadNews, 300000);
 
 loadNews();
