@@ -1,34 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Finance News</title>
+  <title>Finance Dashboard</title>
 
   <style>
     body {
       font-family: Arial;
-      background: #f4f6f8;
       margin: 0;
-      padding: 20px;
+      background: #121212;
+      color: white;
     }
 
-    h1 {
+    header {
+      background: #1f1f1f;
+      padding: 15px;
       text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px;
+    }
+
+    button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #333;
+      color: white;
+    }
+
+    button.active {
+      background: red;
     }
 
     #news {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 15px;
+      padding: 20px;
       list-style: none;
-      padding: 0;
     }
 
     li {
-      background: white;
+      background: #1e1e1e;
       padding: 15px;
       border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       transition: transform 0.2s;
+      position: relative;
     }
 
     li:hover {
@@ -37,12 +61,22 @@
 
     li.important {
       border-left: 5px solid red;
-      background: #fff5f5;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 3px;
     }
 
     a {
+      color: white;
       text-decoration: none;
-      color: #333;
       font-weight: bold;
     }
 
@@ -54,24 +88,49 @@
 </head>
 <body>
 
-<h1>Ultime notizie finanziarie</h1>
+<header>
+  📊 Finance News Dashboard
+</header>
+
+<div class="controls">
+  <button onclick="setFilter('all')" id="btnAll" class="active">Tutte</button>
+  <button onclick="setFilter('important')" id="btnImp">Importanti</button>
+</div>
 
 <ul id="news"></ul>
 
 <script>
+let allNews = [];
+let currentFilter = "all";
+
 async function loadNews() {
   const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news?t=" + Date.now());
   const data = await res.json();
 
+  allNews = data;
+  renderNews();
+}
+
+function renderNews() {
   const list = document.getElementById("news");
   list.innerHTML = "";
 
-  data.forEach(article => {
+  let filtered = allNews;
+
+  if (currentFilter === "important") {
+    filtered = allNews.filter(n => n.important);
+  }
+
+  filtered.forEach(article => {
     const li = document.createElement("li");
 
-    // ✅ evidenzia importanti
     if (article.important) {
       li.classList.add("important");
+
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = "IMPORTANT";
+      li.appendChild(badge);
     }
 
     const link = document.createElement("a");
@@ -89,6 +148,24 @@ async function loadNews() {
     list.appendChild(li);
   });
 }
+
+function setFilter(filter) {
+  currentFilter = filter;
+
+  document.getElementById("btnAll").classList.remove("active");
+  document.getElementById("btnImp").classList.remove("active");
+
+  if (filter === "all") {
+    document.getElementById("btnAll").classList.add("active");
+  } else {
+    document.getElementById("btnImp").classList.add("active");
+  }
+
+  renderNews();
+}
+
+// ✅ auto refresh ogni 5 minuti
+setInterval(loadNews, 300000);
 
 loadNews();
 </script>
