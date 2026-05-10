@@ -2,23 +2,55 @@
 <html>
 <head>
   <title>Finance News</title>
+
   <style>
     body {
       font-family: Arial;
-      margin: 40px;
-      background: #f5f5f5;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
     }
+
     h1 {
       text-align: center;
     }
-    li {
-      margin-bottom: 10px;
+
+    #news {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      list-style: none;
+      padding: 0;
     }
+
+    li {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    li:hover {
+      transform: translateY(-5px);
+    }
+
+    li.important {
+      border-left: 5px solid red;
+      background: #fff5f5;
+    }
+
     a {
       text-decoration: none;
-      color: #0077cc;
+      color: #333;
+      font-weight: bold;
+    }
+
+    small {
+      color: gray;
     }
   </style>
+
 </head>
 <body>
 
@@ -32,39 +64,27 @@ async function loadNews() {
   const data = await res.json();
 
   const list = document.getElementById("news");
+  list.innerHTML = "";
 
   data.forEach(article => {
     const li = document.createElement("li");
 
-if (article.important) {
-  li.style.backgroundColor = "#ffe6e6"; // rosso leggero
-  li.style.borderLeft = "5px solid red";
-  li.style.padding = "10px";
-}
+    // ✅ evidenzia importanti
+    if (article.important) {
+      li.classList.add("important");
+    }
 
-const link = document.createElement("a");
-link.href = article.link;
-link.target = "_blank";
-link.textContent = article.title;
+    const link = document.createElement("a");
+    link.href = article.link;
+    link.target = "_blank";
+    link.textContent = article.title;
 
-const date = document.createElement("div");
-date.innerHTML = "<small>" + new Date(article.pubDate).toLocaleString() + "</small>";
+    const date = document.createElement("div");
+    date.innerHTML = "<small>" + new Date(article.pubDate).toLocaleString() + "</small>";
 
-li.appendChild(link);
-li.appendChild(document.createElement("br"));
-li.appendChild(date);
-
-list.appendChild(li);
-
-    
-li.innerHTML = `
-  <a href="${article.link}" target="_blank">
-    ${article.title}
-  </a>
-  <br/>
-  <small>${new Date(article.pubDate).toLocaleString()}</small>
-`;
-
+    li.appendChild(link);
+    li.appendChild(document.createElement("br"));
+    li.appendChild(date);
 
     list.appendChild(li);
   });
