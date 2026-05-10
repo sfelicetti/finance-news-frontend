@@ -165,7 +165,16 @@ function renderNews() {
     // category
     const category = document.createElement("div");
     category.className = "category";
-    category.textContent = article.category.toUpperCase();
+    
+const categoryLabels = {
+  defense: "Defense",
+  ai: "AI",
+  semiconductor: "Semiconductors",
+  macro: "Macro",
+  general: "General"
+};
+
+category.textContent = categoryLabels[article.category] || "General";
 
     // link
     const link = document.createElement("a");
