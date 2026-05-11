@@ -3,7 +3,6 @@
 <head>
   <title>Global Finance Dashboard</title>
 
-  <!-- ✅ fondamentale per mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -14,7 +13,6 @@
       color: white;
     }
 
-    /* HEADER */
     header {
       background: #1f1f1f;
       padding: 15px;
@@ -26,7 +24,6 @@
       z-index: 1000;
     }
 
-    /* CONTROLS */
     .controls {
       display: flex;
       flex-wrap: wrap;
@@ -35,8 +32,8 @@
       padding: 15px;
     }
 
-    button {
-      padding: 8px 15px;
+    button, select {
+      padding: 8px 12px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
@@ -48,7 +45,6 @@
       background: red;
     }
 
-    /* GRID PC */
     #news {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -57,7 +53,6 @@
       list-style: none;
     }
 
-    /* CARD */
     li {
       background: #1e1e1e;
       padding: 15px;
@@ -87,6 +82,11 @@
     .category {
       font-size: 11px;
       color: #aaa;
+    }
+
+    .source {
+      font-size: 11px;
+      color: #66ccff;
       margin-bottom: 5px;
     }
 
@@ -109,34 +109,6 @@
     small {
       color: gray;
     }
-
-    /* ✅ TABLET */
-    @media (max-width: 900px) {
-      #news {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      }
-    }
-
-    /* ✅ SMARTPHONE */
-    @media (max-width: 600px) {
-      #news {
-        grid-template-columns: 1fr;
-        padding: 10px;
-      }
-
-      li {
-        padding: 12px;
-      }
-
-      header {
-        font-size: 18px;
-      }
-
-      button {
-        font-size: 12px;
-        padding: 6px 10px;
-      }
-    }
   </style>
 </head>
 
@@ -146,11 +118,16 @@
 
 <div class="controls">
   <button onclick="setFilter('all')" id="btnAll" class="active">All</button>
-  <button onclick="setFilter('important')" id="btnImp">Important</button>
-  <button onclick="setFilter('defense')" id="btnDef">Defense</button>
-  <button onclick="setFilter('ai')" id="btnAI">AI</button>
-  <button onclick="setFilter('semiconductor')" id="btnSemi">Semiconductors</button>
+  <button onclick="setFilter('important')" id="btnImportant">Important</button>
+  <button onclick="setFilter('defense')" id="btnDefense">Defense</button>
+  <button onclick="setFilter('ai')" id="btnAi">AI</button>
+  <button onclick="setFilter('semiconductor')" id="btnSemiconductor">Semiconductors</button>
   <button onclick="setFilter('macro')" id="btnMacro">Macro</button>
+
+  <!-- ✅ NUOVO FILTRO -->
+  <select id="sourceFilter" onchange="setSourceFilter()">
+    <option value="all">All Sources</option>
+  </select>
 </div>
 
 <ul id="news"></ul>
@@ -158,6 +135,7 @@
 <script>
 let allNews = [];
 let currentFilter = "all";
+let currentSource = "all";
 
 const scoreColors = {
   5: "#ff0000",
@@ -180,7 +158,24 @@ async function loadNews() {
   const data = await res.json();
 
   allNews = data;
+
+  populateSources();
   renderNews();
+}
+
+function populateSources() {
+  const select = document.getElementById("sourceFilter");
+
+  const sources = [...new Set(allNews.map(n => n.source))];
+
+  select.innerHTML = '<option value="all">All Sources</option>';
+
+  sources.forEach(src => {
+    const opt = document.createElement("option");
+    opt.value = src;
+    opt.textContent = src;
+    select.appendChild(opt);
+  });
 }
 
 function renderNews() {
@@ -190,15 +185,18 @@ function renderNews() {
   let filtered = allNews;
 
   if (currentFilter === "important") {
-    filtered = allNews.filter(n => n.important);
+    filtered = filtered.filter(n => n.important);
   } else if (currentFilter !== "all") {
-    filtered = allNews.filter(n => n.category === currentFilter);
+    filtered = filtered.filter(n => n.category === currentFilter);
+  }
+
+  if (currentSource !== "all") {
+    filtered = filtered.filter(n => n.source === currentSource);
   }
 
   filtered.forEach(article => {
     const li = document.createElement("li");
 
-    // IMPORTANT badge
     if (article.important) {
       li.classList.add("important");
 
@@ -208,28 +206,29 @@ function renderNews() {
       li.appendChild(badge);
     }
 
-    // Category
     const category = document.createElement("div");
     category.className = "category";
     category.textContent = categoryLabels[article.category] || "General";
 
-    // Title
+    const source = document.createElement("div");
+    source.className = "source";
+    source.textContent = article.source;
+
     const link = document.createElement("a");
     link.href = article.link;
     link.target = "_blank";
     link.textContent = article.title;
 
-    // Date
     const date = document.createElement("div");
     date.innerHTML = "<small>" + new Date(article.pubDate).toLocaleString() + "</small>";
 
-    // Score
     const score = document.createElement("div");
     score.className = "score";
     score.style.background = scoreColors[article.score];
     score.textContent = article.score;
 
     li.appendChild(category);
+    li.appendChild(source);
     li.appendChild(link);
     li.appendChild(document.createElement("br"));
     li.appendChild(date);
@@ -243,13 +242,16 @@ function setFilter(filter) {
   currentFilter = filter;
 
   document.querySelectorAll("button").forEach(btn => btn.classList.remove("active"));
-
   document.getElementById("btn" + filter.charAt(0).toUpperCase() + filter.slice(1))?.classList.add("active");
 
   renderNews();
 }
 
-// auto refresh
+function setSourceFilter() {
+  currentSource = document.getElementById("sourceFilter").value;
+  renderNews();
+}
+
 setInterval(loadNews, 300000);
 
 loadNews();
