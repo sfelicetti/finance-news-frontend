@@ -5,11 +5,15 @@
 <title>Finance Dashboard</title>
 
 <style>
-body { background:#121212; color:white; font-family:Arial; margin:0;}
-header{padding:15px; text-align:center; background:#1f1f1f;}
+body {background:#121212;color:white;font-family:Arial;margin:0;}
+header{padding:15px;text-align:center;background:#1f1f1f;}
 
-.sourceBox{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:10px;}
-.sourceItem{padding:5px 8px;background:#444;border-radius:5px;cursor:pointer;font-size:12px;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:10px;}
+button{padding:6px 10px;background:#333;color:white;border:none;border-radius:5px;}
+button.active{background:red;}
+
+.sourceBox{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
+.sourceItem{padding:5px;background:#444;border-radius:5px;cursor:pointer;}
 .sourceItem.active{background:#00cc99;}
 
 #news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;padding:15px;}
@@ -17,7 +21,7 @@ header{padding:15px; text-align:center; background:#1f1f1f;}
 li{background:#1e1e1e;padding:10px;border-radius:10px;}
 a{color:white;text-decoration:none;}
 
-.ticker{color:#00ffcc;font-size:12px;}
+.ticker{color:#00ffcc;}
 .pos{color:#00ff00;}
 .neg{color:#ff4444;}
 .neu{color:#aaa;}
@@ -28,15 +32,25 @@ a{color:white;text-decoration:none;}
 
 <header>📊 Finance Dashboard</header>
 
+<div class="controls">
+<button onclick="setFilter('all')" class="active" id="btnall">All</button>
+<button onclick="setFilter('ai')">AI</button>
+<button onclick="setFilter('semiconductor')">Semiconductors</button>
+<button onclick="setFilter('defense')">Defense</button>
+<button onclick="setFilter('macro')">Macro</button>
+</div>
+
 <div id="sources" class="sourceBox"></div>
+
 <ul id="news"></ul>
 
 <script>
 let allNews=[];
+let currentFilter="all";
 let selectedSources=[];
 
 async function loadNews(){
- const res=await fetch("https://finance-news-backend-3dbp.onrender.com/news?t="+Date.now());
+ const res=await fetch("https://finance-news-backend-3dbp.onrender.com/news");
  allNews=await res.json();
  buildSources();
  renderNews();
@@ -49,22 +63,22 @@ function buildSources(){
  box.innerHTML="";
 
  sources.forEach(src=>{
-  const div=document.createElement("div");
-  div.className="sourceItem";
-  div.textContent=src;
+   const div=document.createElement("div");
+   div.className="sourceItem";
+   div.textContent=src;
 
-  div.onclick=()=>{
-    if(selectedSources.includes(src)){
-      selectedSources=selectedSources.filter(s=>s!==src);
-      div.classList.remove("active");
-    }else{
-      selectedSources.push(src);
-      div.classList.add("active");
-    }
-    renderNews();
-  };
+   div.onclick=()=>{
+     if(selectedSources.includes(src)){
+       selectedSources=selectedSources.filter(s=>s!==src);
+       div.classList.remove("active");
+     } else {
+       selectedSources.push(src);
+       div.classList.add("active");
+     }
+     renderNews();
+   };
 
-  box.appendChild(div);
+   box.appendChild(div);
  });
 }
 
@@ -74,30 +88,48 @@ function renderNews(){
 
  let filtered=allNews;
 
+ if(currentFilter!=="all"){
+   filtered=filtered.filter(n=>n.category===currentFilter);
+ }
+
  if(selectedSources.length>0){
-  filtered=filtered.filter(n=>selectedSources.includes(n.source));
+   filtered=filtered.filter(n=>selectedSources.includes(n.source));
  }
 
  filtered.forEach(a=>{
-  const li=document.createElement("li");
+   const li=document.createElement("li");
 
-  const sentimentClass =
-    a.sentiment==="positive" ? "pos" :
-    a.sentiment==="negative" ? "neg" : "neu";
+   const sClass =
+     a.sentiment==="positive" ? "pos" :
+     a.sentiment==="negative" ? "neg" : "neu";
 
-  li.innerHTML = `
-    <div>${a.source}</div>
-    <div class="ticker">${a.ticker ? "["+a.ticker+"]" : ""}</div>
-    ${a.link}${a.title}</a>
-    <div class="${sentimentClass}">${a.sentiment}</div>
-  `;
+   li.innerHTML = `
+     <div>${a.source}</div>
+     <div class="ticker">${a.ticker ? "["+a.ticker+"]" : ""}</div>
 
-  list.appendChild(li);
+     <!-- ✅ LINK CORRETTO -->
+     <aa.link}
+       ${a.title}
+     </a>
+
+     <div class="${sClass}">${a.sentiment}</div>
+   `;
+
+   list.appendChild(li);
  });
 }
 
-setInterval(loadNews,300000);
+function setFilter(f){
+ currentFilter=f;
+
+ document.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+ event.target.classList.add("active");
+
+ renderNews();
+}
+
 loadNews();
+setInterval(loadNews,300000);
 </script>
 
 </body>
