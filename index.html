@@ -5,26 +5,21 @@
 <title>Finance Dashboard</title>
 
 <style>
-body {background:#121212;color:white;font-family:Arial;margin:0;}
+body{background:#121212;color:white;font-family:Arial;margin:0;}
 header{padding:15px;text-align:center;background:#1f1f1f;}
 
-.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:10px;}
+.controls{display:flex;gap:6px;justify-content:center;padding:10px;flex-wrap:wrap;}
 button{padding:6px 10px;background:#333;color:white;border:none;border-radius:5px;}
 button.active{background:red;}
 
-.sourceBox{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
-.sourceItem{padding:5px;background:#444;border-radius:5px;cursor:pointer;}
+.sourceBox{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin:10px;}
+.sourceItem{background:#444;padding:5px;border-radius:5px;cursor:pointer;}
 .sourceItem.active{background:#00cc99;}
 
-#news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;padding:15px;}
+#news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;padding:10px;}
 
 li{background:#1e1e1e;padding:10px;border-radius:10px;}
-a{color:white;text-decoration:none;}
-
-.ticker{color:#00ffcc;}
-.pos{color:#00ff00;}
-.neg{color:#ff4444;}
-.neu{color:#aaa;}
+a{color:white;}
 </style>
 </head>
 
@@ -33,7 +28,7 @@ a{color:white;text-decoration:none;}
 <header>📊 Finance Dashboard</header>
 
 <div class="controls">
-<button onclick="setFilter('all')" class="active" id="btnall">All</button>
+<button onclick="setFilter('all')" id="btnall" class="active">All</button>
 <button onclick="setFilter('ai')">AI</button>
 <button onclick="setFilter('semiconductor')">Semiconductors</button>
 <button onclick="setFilter('defense')">Defense</button>
@@ -41,95 +36,97 @@ a{color:white;text-decoration:none;}
 </div>
 
 <div id="sources" class="sourceBox"></div>
-
 <ul id="news"></ul>
 
 <script>
-let allNews=[];
-let currentFilter="all";
-let selectedSources=[];
+
+let allNews = [];
+let currentFilter = "all";
+let selectedSources = [];
 
 async function loadNews(){
- const res=await fetch("https://finance-news-backend-3dbp.onrender.com/news");
- allNews=await res.json();
- buildSources();
- renderNews();
+  try {
+    const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news");
+    allNews = await res.json();
+
+    console.log("NEWS:", allNews); // debug
+
+    buildSources();
+    renderNews();
+
+  } catch(e) {
+    console.log("ERRORE FETCH", e);
+  }
 }
 
 function buildSources(){
- const box=document.getElementById("sources");
- const sources=[...new Set(allNews.map(n=>n.source))];
+  const box = document.getElementById("sources");
+  box.innerHTML = "";
 
- box.innerHTML="";
+  const sources = [...new Set(allNews.map(n => n.source))];
 
- sources.forEach(src=>{
-   const div=document.createElement("div");
-   div.className="sourceItem";
-   div.textContent=src;
+  sources.forEach(src => {
+    const div = document.createElement("div");
+    div.className = "sourceItem";
+    div.textContent = src;
 
-   div.onclick=()=>{
-     if(selectedSources.includes(src)){
-       selectedSources=selectedSources.filter(s=>s!==src);
-       div.classList.remove("active");
-     } else {
-       selectedSources.push(src);
-       div.classList.add("active");
-     }
-     renderNews();
-   };
+    div.onclick = () => {
+      if (selectedSources.includes(src)) {
+        selectedSources = selectedSources.filter(s => s !== src);
+        div.classList.remove("active");
+      } else {
+        selectedSources.push(src);
+        div.classList.add("active");
+      }
+      renderNews();
+    };
 
-   box.appendChild(div);
- });
+    box.appendChild(div);
+  });
 }
 
 function renderNews(){
- const list=document.getElementById("news");
- list.innerHTML="";
 
- let filtered=allNews;
+  const list = document.getElementById("news");
+  list.innerHTML = "";
 
- if(currentFilter!=="all"){
-   filtered=filtered.filter(n=>n.category===currentFilter);
- }
+  let filtered = allNews;
 
- if(selectedSources.length>0){
-   filtered=filtered.filter(n=>selectedSources.includes(n.source));
- }
+  if (currentFilter !== "all") {
+    filtered = filtered.filter(n => n.category === currentFilter);
+  }
 
- filtered.forEach(a=>{
-   const li=document.createElement("li");
+  if (selectedSources.length > 0) {
+    filtered = filtered.filter(n => selectedSources.includes(n.source));
+  }
 
-   const sClass =
-     a.sentiment==="positive" ? "pos" :
-     a.sentiment==="negative" ? "neg" : "neu";
+  filtered.forEach(n => {
 
-   li.innerHTML = `
-     <div>${a.source}</div>
-     <div class="ticker">${a.ticker ? "["+a.ticker+"]" : ""}</div>
+    // ✅ sicurezza totale
+    if (!n.title || !n.link) return;
 
-     <!-- ✅ LINK CORRETTO -->
-     <aa.link}
-       ${a.title}
-     </a>
+    const li = document.createElement("li");
 
-     <div class="${sClass}">${a.sentiment}</div>
-   `;
+    li.innerHTML = `
+      <div>${n.source}</div>
+      <a href="${n.linke}</a>
+    `;
 
-   list.appendChild(li);
- });
+    list.appendChild(li);
+  });
 }
 
 function setFilter(f){
- currentFilter=f;
+  currentFilter = f;
 
- document.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
- event.target.classList.add("active");
+  document.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
 
- renderNews();
+  renderNews();
 }
 
 loadNews();
-setInterval(loadNews,300000);
+
 </script>
 
 </body>
