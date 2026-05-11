@@ -5,7 +5,7 @@
 <title>Finance Dashboard</title>
 
 <style>
-body{background:#121212;color:white;font-family:Arial;margin:0;}
+body {background:#121212;color:white;font-family:Arial;margin:0;}
 header{padding:15px;text-align:center;background:#1f1f1f;}
 
 .controls{display:flex;gap:6px;justify-content:center;padding:10px;flex-wrap:wrap;}
@@ -19,7 +19,7 @@ button.active{background:red;}
 #news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;padding:10px;}
 
 li{background:#1e1e1e;padding:10px;border-radius:10px;}
-a{color:white;}
+a{color:white;text-decoration:none;}
 </style>
 </head>
 
@@ -36,27 +36,20 @@ a{color:white;}
 </div>
 
 <div id="sources" class="sourceBox"></div>
+
 <ul id="news"></ul>
 
 <script>
-
 let allNews = [];
 let currentFilter = "all";
 let selectedSources = [];
 
 async function loadNews(){
-  try {
-    const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news");
-    allNews = await res.json();
+  const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news");
+  allNews = await res.json();
 
-    console.log("NEWS:", allNews); // debug
-
-    buildSources();
-    renderNews();
-
-  } catch(e) {
-    console.log("ERRORE FETCH", e);
-  }
+  buildSources();
+  renderNews();
 }
 
 function buildSources(){
@@ -86,30 +79,32 @@ function buildSources(){
 }
 
 function renderNews(){
-
   const list = document.getElementById("news");
   list.innerHTML = "";
 
   let filtered = allNews;
 
   if (currentFilter !== "all") {
-    filtered = filtered.filter(n => n.category === currentFilter);
+    filtered = filtered.filter(n =>
+      (n.category || "").toLowerCase() === currentFilter
+    );
   }
 
   if (selectedSources.length > 0) {
     filtered = filtered.filter(n => selectedSources.includes(n.source));
   }
 
+  if (filtered.length === 0) {
+    list.innerHTML = "<li>Nessuna news trovata</li>";
+    return;
+  }
+
   filtered.forEach(n => {
-
-    // ✅ sicurezza totale
-    if (!n.title || !n.link) return;
-
     const li = document.createElement("li");
 
     li.innerHTML = `
       <div>${n.source}</div>
-      <a href="${n.linke}</a>
+      <a href="${n.link}"</a>
     `;
 
     list.appendChild(li);
@@ -120,13 +115,15 @@ function setFilter(f){
   currentFilter = f;
 
   document.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
+
+  const btn = document.querySelector(`button[onclick="setFilter('${f}')"]`);
+  if (btn) btn.classList.add("active");
 
   renderNews();
 }
 
 loadNews();
-
+setInterval(loadNews, 300000);
 </script>
 
 </body>
