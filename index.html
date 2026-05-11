@@ -1,129 +1,258 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance Dashboard</title>
+  <title>Global Finance Dashboard</title>
 
-<style>
-body {background:#121212;color:white;font-family:Arial;margin:0;}
-header{padding:15px;text-align:center;background:#1f1f1f;}
+  <!-- ✅ fondamentale per mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.controls{display:flex;gap:6px;justify-content:center;padding:10px;flex-wrap:wrap;}
-button{padding:6px 10px;background:#333;color:white;border:none;border-radius:5px;}
-button.active{background:red;}
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #121212;
+      color: white;
+    }
 
-.sourceBox{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin:10px;}
-.sourceItem{background:#444;padding:5px;border-radius:5px;cursor:pointer;}
-.sourceItem.active{background:#00cc99;}
+    /* HEADER */
+    header {
+      background: #1f1f1f;
+      padding: 15px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-#news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;padding:10px;}
+    /* CONTROLS */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px;
+    }
 
-li{background:#1e1e1e;padding:10px;border-radius:10px;}
-a{color:white;text-decoration:none;}
-</style>
+    button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #333;
+      color: white;
+    }
+
+    button.active {
+      background: red;
+    }
+
+    /* GRID PC */
+    #news {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 15px;
+      padding: 20px;
+      list-style: none;
+    }
+
+    /* CARD */
+    li {
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 10px;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    li:hover {
+      transform: translateY(-5px);
+    }
+
+    li.important {
+      border-left: 5px solid red;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 3px;
+    }
+
+    .category {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
+
+    .score {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 12px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    small {
+      color: gray;
+    }
+
+    /* ✅ TABLET */
+    @media (max-width: 900px) {
+      #news {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+    }
+
+    /* ✅ SMARTPHONE */
+    @media (max-width: 600px) {
+      #news {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      li {
+        padding: 12px;
+      }
+
+      header {
+        font-size: 18px;
+      }
+
+      button {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header>📊 Finance Dashboard</header>
+<header>📊 Global Finance Dashboard</header>
 
 <div class="controls">
-<button onclick="setFilter('all')" id="btnall" class="active">All</button>
-<button onclick="setFilter('ai')">AI</button>
-<button onclick="setFilter('semiconductor')">Semiconductors</button>
-<button onclick="setFilter('defense')">Defense</button>
-<button onclick="setFilter('macro')">Macro</button>
+  <button onclick="setFilter('all')" id="btnAll" class="active">All</button>
+  <button onclick="setFilter('important')" id="btnImp">Important</button>
+  <button onclick="setFilter('defense')" id="btnDef">Defense</button>
+  <button onclick="setFilter('ai')" id="btnAI">AI</button>
+  <button onclick="setFilter('semiconductor')" id="btnSemi">Semiconductors</button>
+  <button onclick="setFilter('macro')" id="btnMacro">Macro</button>
 </div>
-
-<div id="sources" class="sourceBox"></div>
 
 <ul id="news"></ul>
 
 <script>
 let allNews = [];
 let currentFilter = "all";
-let selectedSources = [];
 
-async function loadNews(){
-  const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news");
-  allNews = await res.json();
+const scoreColors = {
+  5: "#ff0000",
+  4: "#ff6600",
+  3: "#ffaa00",
+  2: "#3399ff",
+  1: "#666"
+};
 
-  buildSources();
+const categoryLabels = {
+  defense: "Defense",
+  ai: "AI",
+  semiconductor: "Semiconductors",
+  macro: "Macro",
+  general: "General"
+};
+
+async function loadNews() {
+  const res = await fetch("https://finance-news-backend-3dbp.onrender.com/news?t=" + Date.now());
+  const data = await res.json();
+
+  allNews = data;
   renderNews();
 }
 
-function buildSources(){
-  const box = document.getElementById("sources");
-  box.innerHTML = "";
-
-  const sources = [...new Set(allNews.map(n => n.source))];
-
-  sources.forEach(src => {
-    const div = document.createElement("div");
-    div.className = "sourceItem";
-    div.textContent = src;
-
-    div.onclick = () => {
-      if (selectedSources.includes(src)) {
-        selectedSources = selectedSources.filter(s => s !== src);
-        div.classList.remove("active");
-      } else {
-        selectedSources.push(src);
-        div.classList.add("active");
-      }
-      renderNews();
-    };
-
-    box.appendChild(div);
-  });
-}
-
-function renderNews(){
+function renderNews() {
   const list = document.getElementById("news");
   list.innerHTML = "";
 
   let filtered = allNews;
 
-  if (currentFilter !== "all") {
-    filtered = filtered.filter(n =>
-      (n.category || "").toLowerCase() === currentFilter
-    );
+  if (currentFilter === "important") {
+    filtered = allNews.filter(n => n.important);
+  } else if (currentFilter !== "all") {
+    filtered = allNews.filter(n => n.category === currentFilter);
   }
 
-  if (selectedSources.length > 0) {
-    filtered = filtered.filter(n => selectedSources.includes(n.source));
-  }
-
-  if (filtered.length === 0) {
-    list.innerHTML = "<li>Nessuna news trovata</li>";
-    return;
-  }
-
-  filtered.forEach(n => {
+  filtered.forEach(article => {
     const li = document.createElement("li");
 
-    li.innerHTML = `
-      <div>${n.source}</div>
-      <a href="${n.link}"</a>
-    `;
+    // IMPORTANT badge
+    if (article.important) {
+      li.classList.add("important");
+
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = "IMPORTANT";
+      li.appendChild(badge);
+    }
+
+    // Category
+    const category = document.createElement("div");
+    category.className = "category";
+    category.textContent = categoryLabels[article.category] || "General";
+
+    // Title
+    const link = document.createElement("a");
+    link.href = article.link;
+    link.target = "_blank";
+    link.textContent = article.title;
+
+    // Date
+    const date = document.createElement("div");
+    date.innerHTML = "<small>" + new Date(article.pubDate).toLocaleString() + "</small>";
+
+    // Score
+    const score = document.createElement("div");
+    score.className = "score";
+    score.style.background = scoreColors[article.score];
+    score.textContent = article.score;
+
+    li.appendChild(category);
+    li.appendChild(link);
+    li.appendChild(document.createElement("br"));
+    li.appendChild(date);
+    li.appendChild(score);
 
     list.appendChild(li);
   });
 }
 
-function setFilter(f){
-  currentFilter = f;
+function setFilter(filter) {
+  currentFilter = filter;
 
-  document.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("button").forEach(btn => btn.classList.remove("active"));
 
-  const btn = document.querySelector(`button[onclick="setFilter('${f}')"]`);
-  if (btn) btn.classList.add("active");
+  document.getElementById("btn" + filter.charAt(0).toUpperCase() + filter.slice(1))?.classList.add("active");
 
   renderNews();
 }
 
-loadNews();
+// auto refresh
 setInterval(loadNews, 300000);
+
+loadNews();
 </script>
 
 </body>
